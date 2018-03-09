@@ -18,7 +18,7 @@ class ProgressOutput(object):
 			self.printPercent()
 			
 	def printPercent(self):
-		print("%" + str(self.percent) + "\r", end="", flush=True)
+		print(" " + str(self.percent) + "%\r", end="", flush=True)
 	
 def main():
 	dbConfig = loadConfig(r'C:\AppCredentials\CoinTrackerPython\database.config')
@@ -63,6 +63,6 @@ def main():
 	con.commit()
 	con.close()
 			
-	print("Done")
+	print("Done ")
 
 main()

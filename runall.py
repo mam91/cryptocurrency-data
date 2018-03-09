@@ -14,6 +14,7 @@ def roundStr(numberToRound):
 def main():
     dbConfig = loadConfig(r'C:\AppCredentials\CoinTrackerPython\database.config')
     con = psycopg2.connect(dbConfig[0]["postgresql_conn"])
+    con.autocommit = True
     cursor = con.cursor()
         
     cursor.execute("SELECT name FROM crypto_exchanges order by name")
@@ -22,11 +23,14 @@ def main():
     if cursor.rowcount == 0:
         print("No exchange data found")
         return
-
+    
     for row in rows:
         start = time.clock()
         filename = "c:/Users/mmill/Documents/GitHub/Cryptocurrency-Data/" + str(row[0]) + ".py"
         call(["python", filename])
         elapsed = time.clock() - start
         print(str(row[0]) + "  completed in " + roundStr(elapsed) + " seconds.")
+        cursor.callproc("refreshCryptoMarket")
+    cursor.close()
+    con.close()
 main()

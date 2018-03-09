@@ -20,29 +20,21 @@ class ProgressOutput(object):
 			
 	def printPercent(self):
 		print(" " + str(self.percent) + "%\r", end="", flush=True)
-		
-def getAssetsFromSymbol(con, symbol):
-	cursor = con.cursor()
-	cursor.execute("select distinct lower(quote_asset) from public.crypto_markets where position(lower(quote_asset) in lower('" + symbol + "')) > 2")
-	row = cursor.fetchone()
-	cursor.close()
-	quoteCurrency = row[0]
-	baseCurrency = symbol[0:-symbol.index(quoteCurrency)]
-	return baseCurrency, quoteCurrency
+	
 	
 def main():
-	#bitfenix has a rate of 30 per minute so send 1 every 3 seconds to be safe.
-	bitfenixRateSeconds = 3
+	#Bitstamp has a rate of 1 requests per second.  For safety, send only 1 every 1.25 seconds
+	bitstampRateSeconds = 1.25
 	dbConfig = loadConfig(r'C:\AppCredentials\CoinTrackerPython\database.config')
 	
 	con = psycopg2.connect(dbConfig[0]["postgresql_conn"])
 	cursor = con.cursor()
 	
-	cursor.execute("SELECT id, name, endpoint, addl_endpoint FROM crypto_exchanges where name = 'bitfenix'")
+	cursor.execute("SELECT id, name, endpoint, addl_endpoint FROM crypto_exchanges where name = 'bitstamp'")
 	row = cursor.fetchone()
 	
 	if cursor.rowcount == 0:
-		print("No bitfinex exchange data found")
+		print("No bitstamp exchange data found")
 		return
 		
 	print("Refreshing market data for " + str(row[1]))
@@ -53,26 +45,29 @@ def main():
 	progress = ProgressOutput()
 	
 	for x in range(responseLen):
-		time.sleep(bitfenixRateSeconds)
+		time.sleep(bitstampRateSeconds)
 		progress.updatePercent(x, responseLen)
-		symbol = responseJson[x]
+		symbol = responseJson[x]["url_symbol"]
+		name = responseJson[x]["name"]
+		baseCurrency = name[0].strip()
+		quoteCurrency = name[1].strip()
 
-		#No base and quote currency, need to parse from symbol by checking database for quote currency
-		baseCurrency, quoteCurrency = getAssetsFromSymbol(con, symbol)
-
-		#Replace placeholder with symbol
+		#Replace placeholder with actual symbol
 		tickerEndpoint = row[3].replace("<symbol>", symbol)
 		
 		responseAddl = requests.get(tickerEndpoint).content
 		responseAddlJson = json.loads(responseAddl.decode('utf-8'))
 
-		params = (row[0], symbol, responseAddlJson["last_price"], responseAddlJson["volume"], baseCurrency, quoteCurrency)
+		price = responseAddlJson["last"]
+		volume = responseAddlJson["volume"]
+
+		params = (row[0], symbol, price, volume, baseCurrency, quoteCurrency)
 		cursor.callproc('refreshMarketData', params)
 
 	cursor.close()
 	con.commit()
 	con.close()
-	
+			
 	print("Done ")
 
 main()
