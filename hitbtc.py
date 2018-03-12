@@ -16,22 +16,20 @@ def getAssetsFromSymbol(con, symbol):
 	row = cursor.fetchone()
 	cursor.close()
 	quoteCurrency = row[0]
-	baseCurrency = symbol[0:-symbol.rindex(quoteCurrency)]
+	baseCurrency = symbol[0:-symbol.lower().rindex(quoteCurrency)]
 	return baseCurrency, quoteCurrency
 	
 def main():
-	#Gdax has a rate of 3 requests per second.  For safety, send only 2 a second or once ever 0.5 seconds
-	gemeniRateSeconds = 1
 	dbConfig = loadConfig(r'C:\AppCredentials\CoinTrackerPython\database.config')
 	
 	con = psycopg2.connect(dbConfig[0]["postgresql_conn"])
 	cursor = con.cursor()
 	
-	cursor.execute("SELECT id, name, endpoint, addl_endpoint FROM crypto_exchanges where name = 'gemeni'")
+	cursor.execute("SELECT id, name, endpoint, addl_endpoint FROM crypto_exchanges where name = 'hitbtc'")
 	row = cursor.fetchone()
 	
 	if cursor.rowcount == 0:
-		print("No gemeni exchange data found")
+		print("No hitbtc exchange data found")
 		return
 		
 	print("Refreshing market data for " + str(row[1]) + ":  ", end="", flush=True)
@@ -42,36 +40,19 @@ def main():
 	progress = pyprog.progress(responseLen)
 	
 	for x in range(responseLen):
-		time.sleep(gemeniRateSeconds)
 		progress.updatePercent(x)
-		symbol = responseJson[x]
+		symbol = responseJson[x]["symbol"]
+		price = responseJson[x]["last"]
+		volume = responseJson[x]["volume"]
+		baseCurrency, quoteCurrency = getAssetsFromSymbol(con, symbol)
 
-		#Replace placeholder with actual symbol
-		tickerEndpoint = row[3].replace("<symbol>", symbol)
-		
-		responseAddl = requests.get(tickerEndpoint).content
-		responseAddlJson = json.loads(responseAddl.decode('utf-8'))
-		
-		#baseCurrency, quoteCurrency = getAssetsFromSymbol(con, symbol)
-		volumeJson = responseAddlJson["volume"]
-		
-		i = 0
-		for key, value in volumeJson.items():
-			i = i + 1
-			if i == 1:
-				baseCurrency = key
-			if i == 2:
-				volume = value
-				quoteCurrency = key
-				
-		
-		params = (row[0], symbol, responseAddlJson["last"], volume, baseCurrency, quoteCurrency)
+		params = (row[0], symbol, price, volume, baseCurrency, quoteCurrency)
 		cursor.callproc('refreshMarketData', params)
 
 	cursor.close()
 	con.commit()
 	con.close()
-	
+			
 	progress.close()
 
 main()

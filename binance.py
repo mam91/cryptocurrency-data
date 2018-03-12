@@ -1,24 +1,12 @@
 import requests
 import json
 import psycopg2
+import pyprogress.progress as pyprog
 	
 def loadConfig(filename):
 	config = open(filename)
 	data = json.load(config)
 	return data
-	
-class ProgressOutput(object):
-	def __init__(self):
-		self.percent = -1
- 
-	def updatePercent(self, current, total):
-		newPercent = int(current / total * 100)
-		if newPercent > self.percent:
-			self.percent = newPercent
-			self.printPercent()
-			
-	def printPercent(self):
-		print(" " + str(self.percent) + "%\r", end="", flush=True)
 	
 def main():
 	dbConfig = loadConfig(r'C:\AppCredentials\CoinTrackerPython\database.config')
@@ -33,7 +21,7 @@ def main():
 		print("No binance exchange data found")
 		return
 		
-	print("Refreshing market data for " + str(row[1]))
+	print("Refreshing market data for " + str(row[1]) + ": ", end="", flush=True)
 	response = requests.get(str(row[2])).content
 	responseJson = json.loads(response.decode('utf-8'))['symbols']
 	responseAddl = requests.get(str(row[3])).content
@@ -42,14 +30,14 @@ def main():
 	responseLen = len(responseJson)
 	responseAddlLen = len(responseAddlJson)
 	
-	progress = ProgressOutput()
+	progress = pyprog.progress(responseAddlLen)
 		
 	for x in range(responseAddlLen):
 		symbolAddl = responseAddlJson[x]['symbol']
 		lastPrice = responseAddlJson[x]['lastPrice']
 		volume = responseAddlJson[x]['volume']
 		
-		progress.updatePercent(x, responseAddlLen)
+		progress.updatePercent(x)
 		
 		for y in range(responseLen):
 			symbol = responseJson[y]['symbol']
@@ -63,6 +51,6 @@ def main():
 	con.commit()
 	con.close()
 			
-	print("Done ")
+	progress.close()
 
 main()

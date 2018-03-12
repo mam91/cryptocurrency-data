@@ -2,26 +2,13 @@ import requests
 import json
 import psycopg2
 import time
+import pyprogress.progress as pyprog
 	
 def loadConfig(filename):
 	config = open(filename)
 	data = json.load(config)
 	return data
-	
-class ProgressOutput(object):
-	def __init__(self):
-		self.percent = -1
- 
-	def updatePercent(self, current, total):
-		newPercent = int(current / total * 100)
-		if newPercent > self.percent:
-			self.percent = newPercent
-			self.printPercent()
-			
-	def printPercent(self):
-		print(" " + str(self.percent) + "%\r", end="", flush=True)
-	
-	
+		
 def main():
 	#Gdax has a rate of 3 requests per second.  For safety, send only 2 a second or once ever 0.5 seconds
 	gdaxSendRateSeconds = 0.5
@@ -37,16 +24,16 @@ def main():
 		print("No gdax exchange data found")
 		return
 		
-	print("Refreshing market data for " + str(row[1]))
+	print("Refreshing market data for " + str(row[1]) + ":  ", end="", flush=True)
 	response = requests.get(str(row[2])).content
 	responseJson = json.loads(response.decode('utf-8'))
 	
 	responseLen = len(responseJson)
-	progress = ProgressOutput()
+	progress = pyprog.progress(responseLen)
 	
 	for x in range(responseLen):
 		time.sleep(gdaxSendRateSeconds)
-		progress.updatePercent(x, responseLen)
+		progress.updatePercent(x)
 		id = responseJson[x]["id"]
 		baseCurrency = responseJson[x]["base_currency"]
 		quoteCurrency = responseJson[x]["quote_currency"]
@@ -64,6 +51,6 @@ def main():
 	con.commit()
 	con.close()
 			
-	print("Done ")
+	progress.close()
 
 main()
