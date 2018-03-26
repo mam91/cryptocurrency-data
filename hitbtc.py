@@ -16,7 +16,7 @@ def getAssetsFromSymbol(con, symbol):
 	row = cursor.fetchone()
 	cursor.close()
 	quoteCurrency = row[0]
-	baseCurrency = symbol[0:-symbol.lower().rindex(quoteCurrency)]
+	baseCurrency = symbol[0:symbol.lower().rindex(quoteCurrency)]
 	return baseCurrency, quoteCurrency
 	
 def main():
@@ -40,7 +40,7 @@ def main():
 	progress = pyprog.progress(responseLen)
 	
 	for x in range(responseLen):
-		progress.updatePercent(x)
+		progress.updatePercent(x+1)
 		symbol = responseJson[x]["symbol"]
 		price = responseJson[x]["last"]
 		volume = responseJson[x]["volume"]

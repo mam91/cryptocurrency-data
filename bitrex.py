@@ -30,7 +30,7 @@ def main():
 	progress = pyprog.progress(responseLen)
 	
 	for x in range(responseLen):
-		progress.updatePercent(x)
+		progress.updatePercent(x+1)
 		
 		symbol = responseJson[x]["MarketName"]
 		#No base and quote currency, need to parse from symbol by splitting on hyphen - 

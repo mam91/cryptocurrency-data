@@ -10,7 +10,7 @@ def loadConfig(filename):
 	return data
 	
 def main():
-	
+	'''
 	print("Refreshing market data for test: ", end="", flush=True)
 	responseLen = 3
 	progress = pyprog.progress(responseLen)
@@ -20,4 +20,11 @@ def main():
 		time.sleep(1)
 	
 	progress.close()
+	'''
+	symbol = 'btcausd'
+	quoteCurrency = 'usd'
+	rIn = symbol.rindex(quoteCurrency)
+	print(str(rIn))
+	baseCurrency = symbol[0:4]
+	print(baseCurrency)
 main()

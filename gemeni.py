@@ -16,7 +16,7 @@ def getAssetsFromSymbol(con, symbol):
 	row = cursor.fetchone()
 	cursor.close()
 	quoteCurrency = row[0]
-	baseCurrency = symbol[0:-symbol.rindex(quoteCurrency)]
+	baseCurrency = symbol[0:symbol.rindex(quoteCurrency)]
 	return baseCurrency, quoteCurrency
 	
 def main():
@@ -43,7 +43,7 @@ def main():
 	
 	for x in range(responseLen):
 		time.sleep(gemeniRateSeconds)
-		progress.updatePercent(x)
+		progress.updatePercent(x+1)
 		symbol = responseJson[x]
 
 		#Replace placeholder with actual symbol

@@ -30,7 +30,7 @@ def main():
     progress = pyprog.progress(responseLen)
 	
     for x in range(responseLen):
-        progress.updatePercent(x)
+        progress.updatePercent(x+1)
         coinType = responseJson[x]['coinType']
         lastDealPrice = responseJson[x]['lastDealPrice']
         vol = responseJson[x]['vol']

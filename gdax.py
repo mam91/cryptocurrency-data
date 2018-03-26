@@ -33,7 +33,7 @@ def main():
 	
 	for x in range(responseLen):
 		time.sleep(gdaxSendRateSeconds)
-		progress.updatePercent(x)
+		progress.updatePercent(x+1)
 		id = responseJson[x]["id"]
 		baseCurrency = responseJson[x]["base_currency"]
 		quoteCurrency = responseJson[x]["quote_currency"]

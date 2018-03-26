@@ -16,12 +16,12 @@ def getAssetsFromSymbol(con, symbol):
 	row = cursor.fetchone()
 	cursor.close()
 	quoteCurrency = row[0]
-	baseCurrency = symbol[0:-symbol.rindex(quoteCurrency)]
+	baseCurrency = symbol[0:symbol.rindex(quoteCurrency)]
 	return baseCurrency, quoteCurrency
 	
 def main():
 	#bitfenix has a rate of 30 per minute so send 1 every 2 seconds to be safe.
-	bitfenixRateSeconds = 2
+	bitfenixRateSeconds = 3
 	dbConfig = loadConfig(r'C:\AppCredentials\CoinTrackerPython\database.config')
 	
 	con = psycopg2.connect(dbConfig[0]["postgresql_conn"])
@@ -43,7 +43,7 @@ def main():
 	
 	for x in range(responseLen):
 		time.sleep(bitfenixRateSeconds)
-		progress.updatePercent(x)
+		progress.updatePercent(x+1)
 		symbol = responseJson[x]
 
 		#No base and quote currency, need to parse from symbol by checking database for quote currency

@@ -33,7 +33,7 @@ def main():
 	
 	for x in range(responseLen):
 		time.sleep(okexSendRateSeconds)
-		progress.updatePercent(x)
+		progress.updatePercent(x+1)
 		symbol = responseJson[x]["symbol"]
 		
 		#No base and quote currency, need to parse from symbol by splitting on underscore _

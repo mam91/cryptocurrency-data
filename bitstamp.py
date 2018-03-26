@@ -33,7 +33,7 @@ def main():
 	
 	for x in range(responseLen):
 		time.sleep(bitstampRateSeconds)
-		progress.updatePercent(x)
+		progress.updatePercent(x+1)
 		symbol = responseJson[x]["url_symbol"]
 		name = responseJson[x]["name"].split("/")
 		baseCurrency = name[0].strip()

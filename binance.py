@@ -37,7 +37,7 @@ def main():
 		lastPrice = responseAddlJson[x]['lastPrice']
 		volume = responseAddlJson[x]['volume']
 		
-		progress.updatePercent(x)
+		progress.updatePercent(x+1)
 		
 		for y in range(responseLen):
 			symbol = responseJson[y]['symbol']
