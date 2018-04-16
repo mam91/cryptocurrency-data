@@ -35,13 +35,26 @@ def main():
     con.autocommit = True
     cursor = con.cursor()
 
-    cursor.execute("SELECT name FROM crypto_exchanges where active_flag = 'Y' order by name")
+    totalStart = time.clock()
+
+    #Do fiat exchanges first
+    cursor.execute("SELECT name FROM crypto_exchanges where active_flag = 'Y' and fiat_exchange = true order by name")
     rows = cursor.fetchall()
 
     if cursor.rowcount == 0:
         print("No exchange data found")
         return
-    totalStart = time.clock()
+
+    for row in rows:
+        executeExchangeFile(row[0])
+
+    #Do non-fiat exchanges second
+    cursor.execute("SELECT name FROM crypto_exchanges where active_flag = 'Y' and fiat_exchange = false order by name")
+    rows = cursor.fetchall()
+
+    for row in rows:
+        executeExchangeFile(row[0])
+
 
     #exData = []
     #for row in rows:
@@ -52,10 +65,7 @@ def main():
     #pool.close() 
     #pool.join() 
 
-    for row in rows:
-        executeExchangeFile(row[0])
-        #cursor.callproc("refreshCryptoMarket")
-    
+    cursor.callproc("refreshCryptoMarket")
     cursor.close()
     con.close()
     print("Total runtime: " + str(time.clock() - totalStart))
